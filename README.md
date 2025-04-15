@@ -2,6 +2,11 @@
 
 A fun and challenging 2D puzzle game built in C++ using SFML where players sort colored liquids in test tubes. The objective is to organize the liquids so that each tube contains only one color.
 
+## 📱Download 
+
+**[⬇️ Download for Windows](https://github.com/user-attachments/files/19765632/color_sort_window_exe.zip)**
+
+
 ## 🎮 Game Features
 
 - 🎨 Intuitive color sorting puzzle mechanics
