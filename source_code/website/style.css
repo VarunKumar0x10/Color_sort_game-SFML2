@@ -1,0 +1,130 @@
+/* Reset some defaults */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #181c2f;
+    color: #f2f2f2;
+    line-height: 1.6;
+}
+
+header {
+    background: linear-gradient(90deg, #3a8dde 0%, #6e45e2 100%);
+    padding: 40px 0 30px 0;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.8rem;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+header .subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #e0e0e0;
+}
+
+.download-btn {
+    background: #ffb347;
+    color: #181c2f;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background 0.2s;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.download-btn:hover {
+    background: #ffd580;
+    color: #222;
+}
+
+.container {
+    width: 90%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 0;
+}
+
+section {
+    margin-bottom: 30px;
+}
+
+.about ul {
+    margin-top: 10px;
+    margin-left: 18px;
+}
+
+.screenshot img {
+    margin-top: 20px;
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+.features .feature-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 18px;
+}
+
+.features .feature {
+    flex: 1 1 200px;
+    background: #23264a;
+    border-radius: 12px;
+    padding: 20px;
+    min-width: 200px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: transform 0.15s;
+}
+
+.features .feature:hover {
+    transform: translateY(-5px) scale(1.03);
+}
+
+.features h3 {
+    color: #ffb347;
+    margin-bottom: 8px;
+}
+
+.download {
+    text-align: center;
+}
+
+footer {
+    background: #23264a;
+    color: #bbb;
+    text-align: center;
+    padding: 18px 0;
+    font-size: 0.95rem;
+    margin-top: 30px;
+}
+
+footer a {
+    color: #ffb347;
+    text-decoration: underline;
+}
+
+@media (max-width: 700px) {
+    header h1 {
+        font-size: 2rem;
+    }
+    .container {
+        padding: 18px 0;
+    }
+    .features .feature-grid {
+        flex-direction: column;
+        gap: 14px;
+    }
+}
