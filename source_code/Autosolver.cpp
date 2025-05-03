@@ -1,113 +1,118 @@
-// OptimizedAutoSolver.cpp
+//Autosolver.cpp
 #include "AutoSolver.h"
-#include <sstream>
-#include <iostream>
-#include <algorithm>
 
-std::string GameState::serialize() const {
-    std::stringstream ss;
-    for (const auto& tube : tubes) {
-        for (const auto& color : tube) {
-            ss << static_cast<int>(color.toInteger()) << ",";
-        }
-        ss << "|";
-    }
-    return ss.str();
-}
-
-bool GameState::operator==(const GameState& other) const {
-    return tubes == other.tubes;
-}
-
-AutoSolver::AutoSolver(std::vector<TestTube> initialTubes) {
-    for (const auto& tube : initialTubes) {
-        initialState.tubes.push_back(tube.getStack());
-    }
-}
-
-bool AutoSolver::isSolved(const GameState& state) const {
-    for (const auto& tube : state.tubes) {
-        if (tube.empty()) continue;
-        if (tube.size() != 4) return false;
-        sf::Color c = tube[0];
-        for (const auto& color : tube) {
-            if (color != c) return false;
+bool GameState::isSolved() const {
+    for(const auto& tube : tubes) {
+        if(tube.empty()) continue;
+        if(tube.size() != 4) return false;
+        for (int i=1; i < tube.size(); ++i) {
+            if(tube[i] != tube[0]) return false;
         }
     }
     return true;
 }
 
-std::vector<GameState> AutoSolver::getNextStates(const GameState& state, std::unordered_map<GameState, Move>& moveMap) {
-    std::vector<GameState> nextStates;
+//represent all the testtubes as a string
+std::string GameState::serialize() const {
+    std::string result;
+    for (const auto& tube : tubes) {
+        for (const auto& color : tube) {
+            result += std::to_string(color);
+        }
+        result += "|";
+    }
+    return result;
+}
+
+//Constructor, stores input gamestate into startState variable
+AutoSolver::AutoSolver(const std::vector<std::vector<sf::Color>>& currentTubes) {
+    std::vector<std::vector<int>> Tube_as_int;
+    
+    for(const auto& tube : currentTubes) {
+        std::vector<int> intTube;
+        for(const auto& color : tube) {
+            intTube.push_back(colorToInt(color));
+        }
+        Tube_as_int.push_back(intTube);
+    }
+    
+    startState = GameState(Tube_as_int);
+}
+
+
+
+int AutoSolver::colorToInt(const sf::Color& color) const {
+    if (color == sf::Color::Red)     return 1;
+    if (color == sf::Color::Blue)    return 2;
+    if (color == sf::Color::Green)   return 3;
+    if (color == sf::Color::Yellow)  return 4;
+    if (color == sf::Color::Magenta) return 5;
+    if (color == sf::Color::Cyan)    return 6;
+    return -1; 
+}
+
+bool AutoSolver::canpour(const std::vector<int>& from, const std::vector<int>& to) const {
+    if(from.empty() || to.size() >= 4) return false;
+    if(to.empty()) return true;
+    return from.back() == to.back();
+}
+
+//Generates all possible moves from current state
+std::vector<Move> AutoSolver::getMoves(const GameState& state) {
+    std::vector<Move> moves;
     int n = state.tubes.size();
-
-    for (int i = 0; i < n; ++i) {
-        if (state.tubes[i].empty()) continue;
-        sf::Color color = state.tubes[i].back();
-
-        for (int j = 0; j < n; ++j) {
-            if (i == j) continue;
-
-            if (state.tubes[j].size() < 4 && (state.tubes[j].empty() || state.tubes[j].back() == color)) {
-                // Optimization: Avoid pouring single unit to empty tube
-                if (state.tubes[i].size() == 1 && state.tubes[j].empty()) continue;
-
-                GameState newState = state;
-                newState.tubes[j].push_back(color);
-                newState.tubes[i].pop_back();
-
-                if (moveMap.count(newState) == 0) {
-                    moveMap[newState] = {i, j};
-                    nextStates.push_back(newState);
-                }
+    
+    for(int from = 0; from < n; ++from) {
+        for(int to = 0; to < n; ++to) {
+            if(from != to && canpour(state.tubes[from], state.tubes[to])) {
+                moves.push_back({from, to});
             }
         }
     }
-    return nextStates;
+    
+    return moves;
+}
+
+//Generates the new state, dont modify the currenct state
+GameState AutoSolver::apply_move(const GameState& state, const Move& move) {
+    GameState newState = state;
+    int color = newState.tubes[move.from].back();
+    newState.tubes[move.from].pop_back();
+    newState.tubes[move.to].push_back(color);
+    return newState;
 }
 
 bool AutoSolver::solve(std::vector<Move>& solution) {
-    std::queue<GameState> q;
-    std::unordered_set<GameState> visited;
-    std::unordered_map<GameState, Move> moveMap;
-    std::unordered_map<GameState, GameState> parentMap;
 
-    q.push(initialState);
-    visited.insert(initialState);
-    parentMap[initialState] = initialState;
-
-    GameState goal;
-    bool found = false;
-
+    //Queue used to generate and explore the game tree by BFS.
+    //Each node of the tree contains the game state and the set of moves to reach it
+    std::queue<std::pair<GameState, std::vector<Move>>> q;
+    std::unordered_set<std::string> visited;
+    
+    q.push({startState, {}});
+    visited.insert(startState.serialize());
+    
     while (!q.empty()) {
-        GameState current = q.front(); q.pop();
-
-        if (isSolved(current)) {
-            goal = current;
-            found = true;
-            break;
+        auto [current, path] = q.front();
+        q.pop();
+        
+        if (current.isSolved()) {
+            solution = path;
+            return true;
         }
-
-        for (const auto& next : getNextStates(current, moveMap)) {
-            if (visited.count(next) == 0) {
-                q.push(next);
-                visited.insert(next);
-                parentMap[next] = current;
+        
+        for (const auto& move : getMoves(current)) {
+            GameState next = apply_move(current, move);
+            std::string next_str = next.serialize();
+            
+            if (visited.find(next_str) == visited.end()) {
+                visited.insert(next_str);
+                std::vector<Move> newpath = path;
+                newpath.push_back(move);
+                q.push({next, newpath});
             }
         }
     }
-
-    if (!found) return false;
-
-    std::vector<Move> moves;
-    GameState state = goal;
-    while (!(state == initialState)) {
-        Move move = moveMap[state];
-        moves.push_back(move);
-        state = parentMap[state];
-    }
-
-    std::reverse(moves.begin(), moves.end());
-    solution = moves;
-    return true;
+    
+    return false;
 }
