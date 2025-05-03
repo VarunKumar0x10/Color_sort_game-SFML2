@@ -47,10 +47,10 @@ private:
     sf::Texture solve_texture;
     sf::Sprite solve_img;
 
-    std::vector<Move> autoSolution;
+    std::vector<Move> Solutionmoves;
     size_t autoMoveIndex = 0;   
-    bool isAutoSolving = false;
-    sf::Clock autoMoveTimer;
+    bool isautosolving = false;
+    sf::Clock solverClock;
 
 
 
@@ -64,6 +64,9 @@ public:
     bool isRunning;
     std::stack <std::vector <std::vector<sf::Color> > > historyStates; // contains all the prevstates
     void clearhistory(std::stack <std::vector <std::vector<sf::Color> > >& historyStates);
+    //returns vector of sf::color
+    std::vector<std::vector<sf::Color>> getTubeColors() const;
+
     
 private:
     void initializeTubes();
