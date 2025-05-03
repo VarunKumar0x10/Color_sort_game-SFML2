@@ -1,44 +1,39 @@
 // AutoSolver.h
 #pragma once
+
 #include <vector>
 #include <queue>
 #include <unordered_set>
-#include <unordered_map>
 #include <string>
+#include <map>
 #include <SFML/Graphics.hpp>
-#include "Tube.h"
 
 struct Move {
     int from, to;
 };
 
-struct GameState {
-    std::vector<std::vector<sf::Color>> tubes;
-
-    bool operator==(const GameState& other) const;
+class GameState {
+public:
+    std::vector<std::vector<int>> tubes;
+    
+    GameState() {}
+    GameState(const std::vector<std::vector<int>>& t) : tubes(t) {}
+    
+    bool isSolved() const;
     std::string serialize() const;
-
-    bool operator<(const GameState& other) const {
-        return serialize() < other.serialize();
-    };
 };
 
-namespace std {
-    template<>
-    struct hash<GameState> {
-        std::size_t operator()(const GameState& state) const {
-            return hash<std::string>()(state.serialize());
-        }
-    };
-}
-
 class AutoSolver {
-       public:
-            AutoSolver(std::vector<TestTube> initialTubes);
-            bool solve(std::vector<Move>& solution);
-        
-    private:
-            GameState initialState;
-            bool isSolved(const GameState& state) const;
-            std::vector<GameState> getNextStates(const GameState& state, std::unordered_map<GameState, Move>& moveMap);
+public:
+    AutoSolver(const std::vector<std::vector<sf::Color>>& currentTubes);
+    bool solve(std::vector<Move>& solutionMoves);
+    
+private:
+    GameState startState;
+    std::vector<Move> getMoves(const GameState& state);
+    GameState apply_move(const GameState& state, const Move& move);
+    bool canpour(const std::vector<int>& from, const std::vector<int>& to) const;
+    
+    // Convert sf::Color to int for hashing
+    int colorToInt(const sf::Color& color) const;
 };
