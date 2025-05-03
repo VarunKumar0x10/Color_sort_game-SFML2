@@ -50,7 +50,9 @@ void Game::initializeTubes() {
         sf::Color::Red, sf::Color::Blue, sf::Color::Green, sf::Color::Yellow,sf::Color::Magenta,sf::Color::Cyan
     };
 
-    // Fill first 4 tubes with random colors
+    // Fill tubes with random colors
+
+    //vector to store count of colors to ensure correct distribution of colours
     vector<int> color_count (max_colors_count,0); 
     // Red is 0, Blue is 1, Green is 2, Yellow is 3
     for (int i = 0; i < colored_tubes; i++) {
@@ -99,13 +101,16 @@ void Game::handleEvents() {
                 }
 
                 if (solve_button.contains(event.mouseButton.x, event.mouseButton.y)) {
-                    if (!isAutoSolving) {
-                        AutoSolver solver(tubes);  // pass current tubes
-                        if (solver.solve(autoSolution)) {
-                            std::cout << "Solution found: " << autoSolution.size() << " moves\n";
-                            isAutoSolving = true;
+                    if (!isautosolving) {
+
+                        auto temp_tubes = getTubeColors();
+
+                        AutoSolver solver(temp_tubes);  // pass current tubes
+                        if (solver.solve(Solutionmoves)) {
+                            std::cout << "Solution found: " << Solutionmoves.size() << " moves\n";
+                            isautosolving = true;
                             autoMoveIndex = 0;
-                            autoMoveTimer.restart();
+                            solverClock.restart();
                         } else {
                             std::cout << "No solution found!\n";
                         }
@@ -182,16 +187,16 @@ bool Game::isGameWon() const {
 
 void Game::update() {
 
-    if (isAutoSolving && autoMoveIndex < autoSolution.size()) {
-        if (autoMoveTimer.getElapsedTime().asSeconds() >= 1.0f) {
-            Move m = autoSolution[autoMoveIndex++];
+    if (isautosolving && autoMoveIndex < Solutionmoves.size()) {
+        if (solverClock.getElapsedTime().asSeconds() >= 1.0f) {
+            Move m = Solutionmoves[autoMoveIndex++];
             tubes[m.from].transferLiquid(tubes[m.to]);
             moveCount++;
-            autoMoveTimer.restart();
+            solverClock.restart();
         }
     
-        if (autoMoveIndex >= autoSolution.size()) {
-            isAutoSolving = false;
+        if (autoMoveIndex >= Solutionmoves.size()) {
+            isautosolving = false;
         }
     }
     
@@ -338,6 +343,15 @@ void Game::undo_function() {
         std::cout << "Undo performed. Move Count: " << moveCount << std::endl;
     }
 }
+
+std::vector<std::vector<sf::Color>> Game::getTubeColors() const {
+    std::vector<std::vector<sf::Color>> colorStates;
+    for (const auto& tube : tubes) {
+        colorStates.push_back(tube.getStack()); // assuming getStack() returns vector<sf::Color>
+    }
+    return colorStates;
+}
+
 
 void Game::clearhistory(std::stack <std::vector <std::vector<sf::Color> > >& historyStates){
     while(!historyStates.empty()){
